@@ -20,6 +20,7 @@ func main() {
 		agent.NewHeuristic(1.0, "health", HeuristicHealth),
 		agent.NewHeuristic(1.0, "food", HeuristicFood),
 		agent.NewHeuristic(1.0, "space", HeuristicSpace),
+		agent.NewHeuristic(1.0, "territory", HeuristicTerritory),
 	)
 
 	snakeAgent := agent.NewSnakeAgent(portfolio, metadata, 
