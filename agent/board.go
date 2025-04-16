@@ -21,22 +21,10 @@ type Cell interface {
 	Coordinates() rules.Point
 	Neighbours(board *Board) []Cell
 	PassableNeighbours(board *Board) []Cell
-	VoronoiOwner() string
-	VoronoiDistance() int
 }
 
 type EmptyCell struct {
-	coordinates     rules.Point
-	voronoiOwner   string
-	voronoiDist    int
-}
-
-func (e EmptyCell) VoronoiOwner() string {
-	return e.voronoiOwner
-}
-
-func (e EmptyCell) VoronoiDistance() int {
-	return e.voronoiDist
+	coordinates rules.Point
 }
 
 func (e EmptyCell) Kind() CellKind {
@@ -50,17 +38,7 @@ func (e EmptyCell) Coordinates() rules.Point {
 }
 
 type FoodCell struct {
-	coordinates     rules.Point
-	voronoiOwner   string
-	voronoiDist    int
-}
-
-func (f FoodCell) VoronoiOwner() string {
-	return f.voronoiOwner
-}
-
-func (f FoodCell) VoronoiDistance() int {
-	return f.voronoiDist
+	coordinates rules.Point
 }
 
 func (f FoodCell) Kind() CellKind {
@@ -87,16 +65,6 @@ type SnakePartCell struct {
 	SnakeID            string
 	PartType           SnakePartType
 	WillVanishNextTurn bool
-	voronoiOwner      string
-	voronoiDist       int
-}
-
-func (s SnakePartCell) VoronoiOwner() string {
-	return s.voronoiOwner
-}
-
-func (s SnakePartCell) VoronoiDistance() int {
-	return s.voronoiDist
 }
 
 func (s SnakePartCell) Coordinates() rules.Point {
@@ -246,47 +214,5 @@ func NewBoard(g GameSnapshot) *Board {
 		}
 	}
 
-	// Calculate Voronoi partitioning
-	for y := 0; y < g.Height(); y++ {
-		for x := 0; x < g.Width(); x++ {
-			minDist := g.Height() * g.Width()
-			var closestSnakeID string
-			pos := rules.Point{X: x, Y: y}
-
-			// Find closest snake head
-			for _, snake := range g.AliveSnakes() {
-				head := snake.Head()
-				dist := abs(head.X - x) + abs(head.Y - y)
-				if dist < minDist {
-					minDist = dist
-					closestSnakeID = snake.ID()
-				}
-			}
-
-			// Update cell's Voronoi information
-			switch cell := board.Cells[y][x].(type) {
-			case EmptyCell:
-				cell.voronoiOwner = closestSnakeID
-				cell.voronoiDist = minDist
-				board.Cells[y][x] = cell
-			case FoodCell:
-				cell.voronoiOwner = closestSnakeID
-				cell.voronoiDist = minDist
-				board.Cells[y][x] = cell
-			case SnakePartCell:
-				cell.voronoiOwner = closestSnakeID
-				cell.voronoiDist = minDist
-				board.Cells[y][x] = cell
-			}
-		}
-	}
-
 	return board
-}
-
-func abs(x int) int {
-	if x < 0 {
-		return -x
-	}
-	return x
 }
