@@ -166,10 +166,6 @@ func NewBoard(g GameSnapshot) *Board {
 			continue
 		}
 
-		// if g.Turn() == 1 {
-		// 	log.Printf("Turn 1 - Snake %s body structure: %+v", snake.ID(), body)
-		// }
-
 		// Head
 		if body[0].Y < g.Height() && body[0].X < g.Width() {
 			cell := SnakePartCell{
@@ -178,10 +174,6 @@ func NewBoard(g GameSnapshot) *Board {
 				PartType:           SnakePartHead,
 				WillVanishNextTurn: false,
 			}
-			// if g.Turn() == 1 {
-			// 	log.Printf("Turn 1 - Creating HEAD cell at (%d,%d): SnakeID=%s, PartType=%v, WillVanish=%v, SnakeLength=%d",
-			// 		cell.coordinates.X, cell.coordinates.Y, cell.SnakeID, cell.PartType, cell.WillVanishNextTurn, len(body))
-			// }
 			board.Cells[body[0].Y][body[0].X] = cell
 		}
 
@@ -194,10 +186,6 @@ func NewBoard(g GameSnapshot) *Board {
 					PartType:           SnakePartBody,
 					WillVanishNextTurn: false,
 				}
-				// if g.Turn() == 1 {
-				// 	log.Printf("Turn 1 - Creating BODY cell at (%d,%d): SnakeID=%s, PartType=%v, WillVanish=%v, SnakeLength=%d",
-				// 		cell.coordinates.X, cell.coordinates.Y, cell.SnakeID, cell.PartType, cell.WillVanishNextTurn, len(body))
-				// }
 				board.Cells[body[i].Y][body[i].X] = cell
 			}
 		}
@@ -212,10 +200,6 @@ func NewBoard(g GameSnapshot) *Board {
 					PartType:           SnakePartTail,
 					WillVanishNextTurn: snake.Health() < 100 && g.Turn() >= 3,
 				}
-				// if g.Turn() == 1 {
-				// 	log.Printf("Turn 1 - Creating TAIL cell at (%d,%d): SnakeID=%s, PartType=%v, WillVanish=%v, SnakeLength=%d",
-				// 		cell.coordinates.X, cell.coordinates.Y, cell.SnakeID, cell.PartType, cell.WillVanishNextTurn, len(body))
-				// }
 				board.Cells[tail.Y][tail.X] = cell
 			}
 		}
