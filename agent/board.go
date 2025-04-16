@@ -170,6 +170,7 @@ func (s SnakePartCell) PassableNeighbours(board *Board) []Cell {
 type Board struct {
 	Width, Height int
 	Cells         [][]Cell
+	Territories   map[string][]Cell // Maps snake IDs to cells they own
 }
 
 func NewBoard(g GameSnapshot) *Board {
@@ -263,6 +264,9 @@ func NewBoard(g GameSnapshot) *Board {
 		visited[head] = true
 	}
 
+	// Initialize Territories map
+	board.Territories = make(map[string][]Cell)
+	
 	// BFS from all heads simultaneously
 	for len(queue) > 0 {
 		current := queue[0]
@@ -283,6 +287,13 @@ func NewBoard(g GameSnapshot) *Board {
 			c.voronoiOwner = current.owner
 			c.voronoiDist = current.distance
 			board.Cells[current.pos.Y][current.pos.X] = c
+		}
+		
+		// Add cell to the corresponding territory
+		updatedCell := board.Cells[current.pos.Y][current.pos.X]
+		owner := updatedCell.VoronoiOwner()
+		if owner != "" {
+			board.Territories[owner] = append(board.Territories[owner], updatedCell)
 		}
 
 		// Add passable neighbors to queue
