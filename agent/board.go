@@ -21,10 +21,22 @@ type Cell interface {
 	Coordinates() rules.Point
 	Neighbours(board *Board) []Cell
 	PassableNeighbours(board *Board) []Cell
+	VoronoiOwner() string
+	VoronoiDistance() int
 }
 
 type EmptyCell struct {
-	coordinates rules.Point
+	coordinates   rules.Point
+	voronoiOwner string
+	voronoiDist  int
+}
+
+func (e EmptyCell) VoronoiOwner() string {
+	return e.voronoiOwner
+}
+
+func (e EmptyCell) VoronoiDistance() int {
+	return e.voronoiDist
 }
 
 func (e EmptyCell) Kind() CellKind {
@@ -38,7 +50,17 @@ func (e EmptyCell) Coordinates() rules.Point {
 }
 
 type FoodCell struct {
-	coordinates rules.Point
+	coordinates   rules.Point
+	voronoiOwner string
+	voronoiDist  int
+}
+
+func (f FoodCell) VoronoiOwner() string {
+	return f.voronoiOwner
+}
+
+func (f FoodCell) VoronoiDistance() int {
+	return f.voronoiDist
 }
 
 func (f FoodCell) Kind() CellKind {
@@ -65,6 +87,16 @@ type SnakePartCell struct {
 	SnakeID            string
 	PartType           SnakePartType
 	WillVanishNextTurn bool
+	voronoiOwner      string
+	voronoiDist       int
+}
+
+func (s SnakePartCell) VoronoiOwner() string {
+	return s.voronoiOwner
+}
+
+func (s SnakePartCell) VoronoiDistance() int {
+	return s.voronoiDist
 }
 
 func (s SnakePartCell) Coordinates() rules.Point {
@@ -210,6 +242,55 @@ func NewBoard(g GameSnapshot) *Board {
 		for x := 0; x < g.Width(); x++ {
 			if board.Cells[y][x] == nil {
 				board.Cells[y][x] = EmptyCell{coordinates: rules.Point{X: x, Y: y}}
+			}
+		}
+	}
+
+	// Calculate Voronoi partitioning using BFS
+	type queueItem struct {
+		pos      rules.Point
+		owner    string
+		distance int
+	}
+
+	// Initialize queue with snake heads
+	queue := make([]queueItem, 0)
+	visited := make(map[rules.Point]bool)
+	
+	for _, snake := range g.AliveSnakes() {
+		head := snake.Head()
+		queue = append(queue, queueItem{head, snake.ID(), 0})
+		visited[head] = true
+	}
+
+	// BFS from all heads simultaneously
+	for len(queue) > 0 {
+		current := queue[0]
+		queue = queue[1:]
+
+		// Update cell's Voronoi information
+		cell := board.Cells[current.pos.Y][current.pos.X]
+		switch c := cell.(type) {
+		case EmptyCell:
+			c.voronoiOwner = current.owner
+			c.voronoiDist = current.distance
+			board.Cells[current.pos.Y][current.pos.X] = c
+		case FoodCell:
+			c.voronoiOwner = current.owner
+			c.voronoiDist = current.distance
+			board.Cells[current.pos.Y][current.pos.X] = c
+		case SnakePartCell:
+			c.voronoiOwner = current.owner
+			c.voronoiDist = current.distance
+			board.Cells[current.pos.Y][current.pos.X] = c
+		}
+
+		// Add passable neighbors to queue
+		for _, neighbor := range cell.PassableNeighbours(board) {
+			pos := neighbor.Coordinates()
+			if !visited[pos] {
+				visited[pos] = true
+				queue = append(queue, queueItem{pos, current.owner, current.distance + 1})
 			}
 		}
 	}
