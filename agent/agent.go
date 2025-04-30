@@ -8,6 +8,7 @@ import (
 	// "github.com/samber/mo"
 	"fmt"
 	"log"
+
 	// "math"
 	"slices"
 	"strings"
@@ -18,9 +19,9 @@ import (
 
 // Update the SnakeAgent structure to include SnakeMetadataResponse
 type SnakeAgent struct {
-	Portfolio             HeuristicPortfolio
-	Metadata              client.SnakeMetadataResponse
-	Temperature           float64
+	Portfolio           HeuristicPortfolio
+	Metadata            client.SnakeMetadataResponse
+	Temperature         float64
 	LogPerformanceStats bool
 }
 
@@ -49,9 +50,9 @@ func WithPerformanceLogging(enabled bool) SnakeAgentOption {
 
 func NewSnakeAgent(portfolio HeuristicPortfolio, metadata client.SnakeMetadataResponse, opts ...SnakeAgentOption) *SnakeAgent {
 	sa := &SnakeAgent{
-		Portfolio:             portfolio,
-		Metadata:              metadata,
-		Temperature:           5.0,  // default temperature
+		Portfolio:           portfolio,
+		Metadata:            metadata,
+		Temperature:         5.0,  // default temperature
 		LogPerformanceStats: true, // default to true
 	}
 
@@ -74,7 +75,7 @@ func (sa *SnakeAgent) ChooseMove(snapshot GameSnapshot) client.MoveResponse {
 
 	consideredMoveStrs := lo.Map(consideredMoves, func(move rules.SnakeMove, _ int) string { return move.Move })
 	slices.Sort(consideredMoveStrs)
-	log.Printf("\n\n ### Start Turn %d: Considered Moves = %v", snapshot.Turn(), consideredMoveStrs)
+	log.Printf("\n\n ### Start Turn %d: Considered Moves = %v, Game ID: %v", snapshot.Turn(), consideredMoveStrs, snapshot.GameID())
 
 	if sa.LogPerformanceStats {
 		defer func() {
